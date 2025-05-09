@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\admin\\source\\repos\\TestNexusApp\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{EDA35778-9F04-4AD5-803C-F2A8ACE9614A}|TestNexusApp.csproj|c:\\users\\admin\\source\\repos\\testnexusapp\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EDA35778-9F04-4AD5-803C-F2A8ACE9614A}|TestNexusApp.csproj|solutionrelative:class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{EDA35778-9F04-4AD5-803C-F2A8ACE9614A}|TestNexusApp.csproj|c:\\users\\admin\\source\\repos\\testnexusapp\\maintest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EDA35778-9F04-4AD5-803C-F2A8ACE9614A}|TestNexusApp.csproj|solutionrelative:maintest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -19,12 +19,12 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Class1.cs",
-              "DocumentMoniker": "C:\\Users\\admin\\source\\repos\\TestNexusApp\\Class1.cs",
-              "RelativeDocumentMoniker": "Class1.cs",
-              "ToolTip": "C:\\Users\\admin\\source\\repos\\TestNexusApp\\Class1.cs",
-              "RelativeToolTip": "Class1.cs",
-              "ViewState": "AgIAAPwCAAAAAAAAAAAtwAoDAAArAAAAAAAAAA==",
+              "Title": "MainTest.cs",
+              "DocumentMoniker": "C:\\Users\\admin\\source\\repos\\TestNexusApp\\MainTest.cs",
+              "RelativeDocumentMoniker": "MainTest.cs",
+              "ToolTip": "C:\\Users\\admin\\source\\repos\\TestNexusApp\\MainTest.cs",
+              "RelativeToolTip": "MainTest.cs",
+              "ViewState": "AgIAAPwCAAAAAAAAAAAtwAkDAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-09T07:10:47.186Z",
               "EditorCaption": ""
