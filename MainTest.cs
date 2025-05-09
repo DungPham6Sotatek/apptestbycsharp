@@ -16,8 +16,8 @@ using OpenQA.Selenium.BiDi.Modules.BrowsingContext;
 using SeleniumExtras.WaitHelpers;
 using System.Threading;
 using System.CodeDom;
-using AppiumTestProject.Automation.constanst;
-using AppiumTestProject.Automation.PageLocator;
+using NexusAppProject.Automation.constanst;
+using NexusAppProject.Automation.PageLocator;
 using AngleSharp.Css;
 using Allure.NUnit;
 using System.Collections.ObjectModel;
@@ -27,9 +27,17 @@ using OpenQA.Selenium.BiDi.Modules.Input;
 using OpenQA.Selenium.Interactions;
 using static System.Net.Mime.MediaTypeNames;
 using AngleSharp.Dom;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Appium;
+using OpenQA.Selenium.Appium.Android;
+using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Interactions.Internal;
+using System;
+using System.Collections.Generic;
+using System.Net;
 
 
-namespace AppiumTestProject.Automation.Utilities
+namespace NexusAppProject.Automation.Utilities
 {
     public class CommonBase
     {
@@ -75,7 +83,25 @@ namespace AppiumTestProject.Automation.Utilities
             element.Clear();
             element.SendKeys(key);
         }
+        public void SwipeRightToLeft()
+        {
+            var screenSize = driver.Manage().Window.Size;
 
+            int startX = (int)(screenSize.Width * 0.9);   // start swiping from right side
+            int endX = (int)(screenSize.Width * 0.1);     // swipe left
+            int y = (int)(screenSize.Height * 0.4);       // swipe at the center of calendar
+
+            var finger = new PointerInputDevice(PointerKind.Touch);
+            var swipe = new ActionSequence(finger, 0);
+
+            swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, startX, y, TimeSpan.Zero));
+            swipe.AddAction(finger.CreatePointerDown(0)); 
+            swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, endX, y, TimeSpan.FromMilliseconds(500)));
+            swipe.AddAction(finger.CreatePointerUp(0));
+
+            driver.PerformActions(new List<ActionSequence> { swipe });
+            
+        }
 
         public void CloseKeyBoard()
         {
@@ -95,7 +121,7 @@ namespace AppiumTestProject.Automation.Utilities
 
     }
 }
-namespace AppiumTestProject.Automation.constanst
+namespace NexusAppProject.Automation.constanst
 {
     public class CT_App_Constanst
     {
@@ -121,6 +147,15 @@ namespace AppiumTestProject.Automation.constanst
         public static String HOME_LINK = "//android.widget.ImageView[contains(@content-desc, 'Home')]"; //Home
         public static String LOGOUT_LINK = "//android.widget.ImageView[contains(@content-desc, 'Logout')]"; // Logout
         public static String LOGOUT_BTN = "//android.widget.Button[@content-desc=\"Logout\"]"; // Logout
+        public static String MONTH_TITILE = "//android.view.View[@content-desc]";
+        public static String DUE_DATE = "//android.view.View[@content-desc=\"{0}\"]";
+        public static String CREATE_NEW_INV_BTN = "//android.widget.Button[@content-desc=\"Create new invoice log\"]";
+        public static String INVOICE_NAME = "//android.widget.EditText";
+        public static String OCCUPATION_DROPDOWN = "//android.widget.ImageView[@content-desc=\"Choose an occupation\"]";
+        public static String OCCUPATION_OPTION = "//android.widget.Button[@content-desc=\"{0}\"]";
+        public static String FULLNAME_DROPDOWN = "//android.widget.ImageView[@content-desc=\"Choose a user\"]";
+        public static String FULLNAME_OPTION = "//android.view.View[@content-desc=\"{0} {1}\"]"; // EricCatona (dung.pham6+10@sotatek.com)
+        public static String SUBMIT_BTN = "//android.widget.Button[@content-desc=\"Submit\"]";
     }
     public class CT_LoginPage
     {
@@ -150,13 +185,13 @@ namespace AppiumTestProject.Automation.constanst
         public static String STATUS_OPTION = "//android.widget.Button[@content-desc=\"{0}\"]";
         public static String SHOW_RESULTS = "//android.widget.Button[@content-desc=\"Show results\"]";
         public static String RESULTS_OCCUPATION = "//android.view.View[contains(@content-desc, '{0}')]";
-        public static String RESULTS_STATUS = "//android.view.View[contains(@content-desc, '{0}')]";
+        public static String RESULTS_STATUS = "//android.view.View[contains(@content-desc, '{0} {1}')]";
     }
 
 }
-namespace AppiumTestProject.Automation.PageLocator
+namespace NexusAppProject.Automation.PageLocator
 {
-    public class OnboardPage : AppiumTestProject.Automation.Utilities.CommonBase
+    public class OnboardPage : NexusAppProject.Automation.Utilities.CommonBase
     {
         public AndroidDriver driver;
         public OnboardPage(AndroidDriver driver)
@@ -172,7 +207,7 @@ namespace AppiumTestProject.Automation.PageLocator
             ClickToElement(By.XPath(CT_OnboardScreen.LOGIN_BTN));
         }
     }
-    public class HomePage : AppiumTestProject.Automation.Utilities.CommonBase
+    public class HomePage : NexusAppProject.Automation.Utilities.CommonBase
     {
         public AndroidDriver driver;
         public HomePage(AndroidDriver _driver)
@@ -189,8 +224,62 @@ namespace AppiumTestProject.Automation.PageLocator
             ClickToElement(By.XPath(CT_HomePage.USER_LIST_LINK));
             Pause(2000);
         }
+        public void SwipeToMonth(String targetMonthYear, int maxSwipes)
+        {
+            IWebElement currentMonthTitle = GetElementVisibility(By.XPath(CT_HomePage.MONTH_TITILE));
+            Console.WriteLine("Current month: " + currentMonthTitle.GetAttribute("content-desc"));
+            for (int i = 0; i < maxSwipes; i++)
+            {
+                // swipe left
+                SwipeRightToLeft();
+
+                Thread.Sleep(3000); // wait to update UI
+                IWebElement nextMonthTitle = GetElementVisibility(By.XPath(CT_HomePage.MONTH_TITILE));
+                Console.WriteLine(nextMonthTitle.GetAttribute("content-desc"));
+                if (nextMonthTitle.GetAttribute("content-desc").Contains(targetMonthYear))
+                {
+                    Console.WriteLine($"Found month: {targetMonthYear}");
+                    return;
+                }
+            }
+
+            throw new Exception($"Not found target month '{targetMonthYear}' after {maxSwipes} times swiping");
+        
     }
-    public class LoginPage : AppiumTestProject.Automation.Utilities.CommonBase
+        public void ChooseDueDateOnCalendarScreen(int duedate)
+        {
+            String xpath_duedate = String.Format(CT_HomePage.DUE_DATE, duedate);
+            ClickToElement(By.XPath(xpath_duedate));
+            Pause(2000);
+        }
+        public void CreatNewInvoiceLog(String invName)
+        {
+            ClickToElement(By.XPath(CT_HomePage.CREATE_NEW_INV_BTN));
+            Pause(2000);
+            ClickToElement(By.XPath(CT_HomePage.INVOICE_NAME));
+            SendKeyToElement(By.XPath(CT_HomePage.INVOICE_NAME), invName);
+            Pause(2000);
+        }
+        public void ChooseOccupationOnNewInvoiceLog(String occupation)
+        {
+            ClickToElement(By.XPath(CT_HomePage.OCCUPATION_DROPDOWN));
+            String xpath_occupation = String.Format(CT_HomePage.OCCUPATION_OPTION, occupation);
+            ClickToElement(By.XPath(xpath_occupation));
+            Pause(2000);
+        }
+        public void ChooseFullnameOnNewInvoiceLog(String name, String email)
+        {
+            ClickToElement(By.XPath(CT_HomePage.FULLNAME_DROPDOWN));
+            String xpath_fullname = String.Format(CT_HomePage.FULLNAME_OPTION, name, email);
+            ClickToElement(By.XPath(xpath_fullname));
+            Pause(2000);
+        }
+        public void SubmitNewInvoiceLog()
+        {
+            ClickToElement(By.XPath(CT_HomePage.SUBMIT_BTN));
+        }
+    }
+    public class LoginPage : NexusAppProject.Automation.Utilities.CommonBase
 
     {
         public AndroidDriver driver;
@@ -242,7 +331,7 @@ namespace AppiumTestProject.Automation.PageLocator
             Pause(2000);
         }
     }
-    public class UserListPage : AppiumTestProject.Automation.Utilities.CommonBase
+    public class UserListPage : NexusAppProject.Automation.Utilities.CommonBase
     {
         public AndroidDriver driver;
         public UserListPage(AndroidDriver driver)
@@ -357,10 +446,10 @@ namespace AppiumTestProject.Automation.PageLocator
     }
 }
 
-namespace AppiumTestProject.Automation.TestSuite
+namespace NexusAppProject.Automation.TestSuite
 {
     [AllureNUnit]
-    public class TestLogin : AppiumTestProject.Automation.Utilities.CommonBase
+    public class TestLogin : NexusAppProject.Automation.Utilities.CommonBase
     {
         public AndroidDriver driver;
         [SetUp]
@@ -395,7 +484,7 @@ namespace AppiumTestProject.Automation.TestSuite
             driver.TerminateApp(CT_App_Constanst.PACKAGE);
         }
     }
-    public class TestSignUp : AppiumTestProject.Automation.Utilities.CommonBase
+    public class TestSignUp : NexusAppProject.Automation.Utilities.CommonBase
     {
         public AndroidDriver driver;
         public String nameUser = "Viet dung";
@@ -496,7 +585,7 @@ namespace AppiumTestProject.Automation.TestSuite
         }
 
     }
-    public class TestFilterUserByAdmin : AppiumTestProject.Automation.Utilities.CommonBase
+    public class TestFilterUserByAdmin : NexusAppProject.Automation.Utilities.CommonBase
     {
         public AndroidDriver driver;
         public String fullname = "admin@nexus.com";
@@ -795,13 +884,41 @@ namespace AppiumTestProject.Automation.TestSuite
         }
 
     }
-    public class TestHomeCaLendar
+    public class TestHomeCaLendar : NexusAppProject.Automation.Utilities.CommonBase
     {
         public AndroidDriver driver;
+        public String payeeEmail = "dung.pham6@sotatek.com";
+        public String passcode = "123456";
+        public String payorEmail = "dung.pham6+10@sotatek.com";
         [SetUp]
-        public void initApp()
+        public void InitApp()
         {
+            driver = OpenApp(CT_App_Constanst.PACKAGE, CT_App_Constanst.ACTIVITY, CT_App_Constanst.DEVICE_ID, CT_App_Constanst.PLATFORM_NAME,
+                            CT_App_Constanst.PROJECT_NAME, CT_App_Constanst.NO_RESET, CT_App_Constanst.DEVICE_NAME, CT_App_Constanst.URI);
+            OnboardPage onboard = new OnboardPage(driver);
+            onboard.AccessLogin();
+        }
+        [Test]
+        public void CreateInvoiceLogSuccessfully()
+        {
+            LoginPage loginPage = new LoginPage(driver);
+            loginPage.LoginWithEmailAndPassCode(payeeEmail, passcode);
+            
+            HomePage home = new HomePage(driver);
+            home.SwipeToMonth("January 2026", 8);
+            home.ChooseDueDateOnCalendarScreen(20);
+            home.CreatNewInvoiceLog("TestAutomation-01");
+            home.ChooseOccupationOnNewInvoiceLog("Builder");
+            home.ChooseFullnameOnNewInvoiceLog("EricCatona", "(dung.pham6+10@sotatek.com)"); // EricCatona (dung.pham6+10@sotatek.com)
+            home.SubmitNewInvoiceLog();
 
+        }
+        [TearDown]
+        public void QuitApp()
+        {
+            HomePage home = new HomePage(driver);
+            home.LogoutSuccessfully();
+            driver.TerminateApp(CT_App_Constanst.PACKAGE);
         }
 
     }
